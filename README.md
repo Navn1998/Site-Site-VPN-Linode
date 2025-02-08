@@ -1,8 +1,8 @@
-1. Outbound Traffic via pfSense (NAT Setup)
+Outbound Traffic via pfSense (NAT Setup)
 Since Linode doesn’t provide NAT, pfSense must act as a NAT gateway for your private Ubuntu 24 instances.
 
 Step 1: Configure NAT on pfSense
-
+```
 Log in to the pfSense Web UI.
 Navigate to Firewall > NAT > Outbound.
 Set the mode to Manual Outbound NAT.
@@ -12,6 +12,7 @@ Source: 172.16.10.0/24
 Destination: Any
 Translation: Use WAN Address (172.236.175.231)
 Click Save & Apply Changes.
+```
 
 2. Configure Ubuntu VM to Use pfSense as Default Gateway
 Each private instance must route traffic through pfSense.
@@ -19,11 +20,11 @@ Each private instance must route traffic through pfSense.
 Step 1: Set Default Gateway on Ubuntu
 Run:
 
-sudo ip route add default via private subnet
+```sudo ip route add default via private subnet```
 
 To persist the route, update Netplan, look at Netplan.yml file:
 
-sudo nano /etc/netplan/50-cloud-init.yaml
+```sudo nano /etc/netplan/50-cloud-init.yaml```
 
 ```
 network:
@@ -42,11 +43,11 @@ network:
 
 					
 Apply changes:
-sudo netplan apply
+```sudo netplan apply```
 
 3. Inbound Traffic Routing (Port Forwarding to Private Instances)
 You need to configure pfSense to route external traffic to backend instances.
-
+```
 Step 1: Configure Port Forwarding on pfSense
 Navigate to Firewall > NAT > Port Forward.
 Click Add:
@@ -57,8 +58,10 @@ Destination Port: (e.g., 443 for HTTPS, 22 for SSH)
 Redirect Target IP: private subnet
 Redirect Target Port: (same as destination)
 Click Save & Apply Changes.
+```
 
 Step 2: Allow Traffic in pfSense Firewall
+```
 Go to Firewall > Rules > WAN.
 Click Add:
 Action: Pass
@@ -68,7 +71,7 @@ Source: Any
 Destination: private subnet
 Destination Port: (same as port forwarding)
 Click Save & Apply Changes.
-
+```
 Step 3: Allow Traffic on Ubuntu Firewall
 Run on private subnet:
 
@@ -82,7 +85,7 @@ Since you’ve established an IPsec tunnel between pfSense and AWS:
 
 Step 1: Update Firewall Rules for VPN Traffic
 In pfSense:
-
+```
 Navigate to Firewall > Rules > IPsec.
 Add a rule to allow all traffic:
 Action: Pass
@@ -90,7 +93,7 @@ Protocol: Any
 Source: 172.16.10.0/24
 Destination: AWS subnet (e.g., 10.0.0.0/16)
 Click Save & Apply Changes.
-
+```
 Step 2: Verify Routing from private subnet to AWS
 On private VM, try:
 
